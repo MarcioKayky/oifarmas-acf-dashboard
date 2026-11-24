@@ -1,0 +1,7 @@
+{
+  "name": "oifarmas-aulao-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashboard de captação e vendas do Aulão de Cálculo Farmacêutico (Oifarmas)",
+  "engines": { "node": ">=18" }
+}
