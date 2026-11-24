@@ -52,8 +52,8 @@ svg text{font-size:12px}
 
   <div class="kpis">
     <div class="card"><div class="kl">Inscritos</div><div class="kv" id="k-inscritos">—</div><div class="ks">cadastros na lista completa</div></div>
-    <div class="card"><div class="kl">Compradores (pagos)</div><div class="kv" id="k-pagos">—</div><div class="ks">e-mails únicos nas abas Categoria 2 e 3</div></div>
-    <div class="card"><div class="kl">Conversão (pagos ÷ inscritos)</div><div class="kv" id="k-conv">—</div><div class="ks"><b id="k-nabase">—</b> dos pagos estão na lista de inscritos (<b id="k-convbase">—</b> dos inscritos)</div></div>
+    <div class="card"><div class="kl">Compradores (pagos)</div><div class="kv" id="k-pagos">—</div><div class="ks">pedidos pagos na Jedu (Categoria 2 e 3)</div></div>
+    <div class="card"><div class="kl">Conversão (pagos ÷ inscritos)</div><div class="kv" id="k-conv">—</div><div class="ks">pagos na Jedu ÷ cadastros da lista</div></div>
     <div class="card"><div class="kl">Inscritos hoje (<span id="k-hoje-r">—</span>)</div><div class="kv" id="k-hoje">—</div><div class="ks">ontem: <b id="k-ontem">—</b></div></div>
   </div>
 
@@ -62,7 +62,7 @@ svg text{font-size:12px}
     <section class="card"><h2>Ranking por estado</h2><div id="c-estado">—</div><p class="note">Estado pelo DDD do telefone; a % é sobre os cadastros com telefone válido. <b id="n-semuf">—</b> cadastros com telefone inválido ficam de fora.</p></section>
     <section class="card"><h2>Campanhas (utm_campaign)</h2><div id="c-campanha">—</div></section>
     <section class="card"><h2>Top canais (utm_source)</h2><div id="c-canal">—</div></section>
-    <section class="card"><h2>Vendas por categoria</h2><div id="c-vendas">—</div><p class="note">Pagos vêm das abas Categoria 2 e 3. <b id="n-duas">—</b> compradores estão nas duas abas; o total de pagos conta cada e-mail uma vez.</p></section>
+    <section class="card"><h2>Vendas por categoria</h2><div id="c-vendas">—</div><p class="note">Fonte: pedidos com status Pago no admin da Jedu, lidos em <span id="n-lido">—</span>. Esses números são digitados, não atualizam sozinhos. Fora da conta: <b id="n-proc">—</b> pedidos ainda em processamento.</p></section>
     <section class="card wide"><h2>Qualidade da base</h2><p class="sub">Cadastros sem nenhum problema de dado (telefone, e-mail, nome, duplicidade).</p>
       <div class="q"><span class="kv" id="q-pct">—</span><span class="ks"><b id="q-sem">—</b> de <b id="q-total">—</b> cadastros sem problema algum</span></div>
       <div id="c-qual">—</div>
@@ -71,7 +71,7 @@ svg text{font-size:12px}
 
   <details><summary>Como cada número é calculado</summary><ul>
     <li>Inscritos: linhas da aba Lista completa de cadastros.</li>
-    <li>Compradores: e-mails únicos nas abas Categoria 2 e Categoria 3; quem está nas duas conta uma vez.</li>
+    <li>Compradores: pedidos com status Pago na Jedu nos produtos Categoria 2 e Categoria 3 do Aulão (processando, cancelado e falhou não contam).</li>
     <li>Conversão: compradores ÷ inscritos.</li>
     <li>Estado: DDD do telefone (telefone inválido não entra no ranking).</li>
     <li>Problema de dado: telefone com DDD inexistente ou dígitos faltando; e-mail fora do formato ou com domínio digitado errado; nome vazio; e-mail ou telefone que aparece em mais de um cadastro (todos os cadastros repetidos contam).</li>
@@ -168,13 +168,12 @@ function render(d) {
   txt('k-inscritos', nf.format(k.inscritos));
   txt('k-pagos', nf.format(k.pagos));
   txt('k-conv', pf.format(k.conversao));
-  txt('k-nabase', nf.format(k.pagos_na_base));
-  txt('k-convbase', pf.format(k.conv_base));
   txt('k-hoje-r', k.hoje_rotulo);
   txt('k-hoje', nf.format(k.hoje));
   txt('k-ontem', nf.format(k.ontem));
   txt('n-semuf', nf.format(k.sem_uf));
-  txt('n-duas', nf.format(k.nas_duas));
+  txt('n-lido', k.lido_em);
+  txt('n-proc', nf.format(k.processando));
   txt('q-pct', pf.format(q.pct_sem_problema));
   txt('q-sem', nf.format(q.sem_problema));
   txt('q-total', nf.format(q.total));

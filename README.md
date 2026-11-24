@@ -2,7 +2,7 @@
 
 Espelho do dashboard do Claude. A página (`public/index.html`) chama a função `api/data.js`, que lê a planilha do Google, calcula os totais e devolve só números (nenhum e-mail ou telefone sai do servidor). O resultado fica em cache por 5 minutos e a página se recarrega sozinha a cada 5 minutos, então acompanha a planilha sem você fazer nada.
 
-Abas lidas da planilha: **Lista completa de cadastros**, **Categoria 2** e **Categoria 3**. Se renomear alguma aba, ajuste `RANGES` em `api/data.js`.
+Aba lida da planilha: **Lista completa de cadastros** (se renomear, ajuste `api/data.js`). Os compradores (Categoria 2 e 3) vêm da Jedu e ficam em `lib/jedu.json`: são números digitados, não atualizam sozinhos. Para atualizar, edite esse arquivo e dê `git push`.
 
 ## Caminho rápido (planilha pública, sem chave)
 
@@ -46,7 +46,7 @@ Se aparecer "Não foi possível carregar os dados", a mensagem diz o motivo (var
 ## Como as regras de cálculo funcionam
 
 Estão todas em `lib/compute.js`:
-- **Compradores:** e-mails únicos nas abas Categoria 2 e 3. Quem está nas duas conta uma vez.
+- **Compradores:** pedidos com status Pago na Jedu (Categoria 2 e 3), de `lib/jedu.json`.
 - **Conversão:** compradores ÷ inscritos.
 - **Estado:** DDD do telefone. Telefone inválido não entra no ranking.
 - **Qualidade:** problema de telefone (DDD inexistente ou dígitos faltando), e-mail (formato ou domínio digitado errado), nome vazio e duplicidade de e-mail ou telefone.

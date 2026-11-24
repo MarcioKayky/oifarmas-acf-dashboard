@@ -1,0 +1,8 @@
+{
+  "lido_em": "24/11/2026 13:19",
+  "fonte": "Admin da Jedu > Comercial > Gestão de vendas, pedidos com status Pago (produtos Categoria 2 e Categoria 3 do Aulão de cálculo)",
+  "categorias": [
+    { "nome": "Categoria 2", "pagos": 24, "processando": 3, "cancelados": 1 },
+    { "nome": "Categoria 3", "pagos": 22, "processando": 2, "cancelados": 0 }
+  ]
+}

@@ -2,13 +2,10 @@
 // calcula os totais e devolve JSON. O resultado fica em cache por 5 minutos.
 const crypto = require('crypto');
 const { compute } = require('../lib/compute');
+const jedu = require('../lib/jedu.json');
 
 const SHEET_ID = process.env.SHEET_ID || '1mHViniJy8IOIgbac2XPwG2fo1aI_-0IV6HtV8iW5ii4';
-const RANGES = [
-  "'Lista completa de cadastros'!A1:F20000",
-  "'Categoria 2'!A1:C3000",
-  "'Categoria 3'!A1:C3000",
-];
+const RANGES = ["'Lista completa de cadastros'!A1:F20000"];
 
 const b64url = (b) => Buffer.from(b).toString('base64').replace(/=/g, '').replace(/[+]/g, '-').replace(/[/]/g, '_');
 
@@ -80,16 +77,16 @@ async function lerPrivado() {
   );
   const j = await r.json();
   if (!r.ok) throw new Error(`Google Sheets respondeu ${r.status}: ${(j.error && j.error.message) || ''}`);
-  return j.valueRanges.map((v) => v.values || []);
+  return j.valueRanges[0].values || [];
 }
 
 module.exports = async (req, res) => {
   try {
-    const [leads, cat2, cat3] = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+    const leads = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
       ? await lerPrivado()
-      : await Promise.all(['Lista completa de cadastros', 'Categoria 2', 'Categoria 3'].map(lerPublico));
+      : await lerPublico('Lista completa de cadastros');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
-    res.status(200).json(compute(leads, cat2, cat3, new Date()));
+    res.status(200).json(compute(leads, jedu, new Date()));
   } catch (e) {
     res.setHeader('Cache-Control', 'no-store');
     res.status(500).json({ erro: String(e.message || e) });
