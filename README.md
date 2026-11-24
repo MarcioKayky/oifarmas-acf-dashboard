@@ -4,6 +4,13 @@ Espelho do dashboard do Claude. A página (`public/index.html`) chama a função
 
 Abas lidas da planilha: **Lista completa de cadastros**, **Categoria 2** e **Categoria 3**. Se renomear alguma aba, ajuste `RANGES` em `api/data.js`.
 
+## Caminho rápido (planilha pública, sem chave)
+
+1. Na planilha: **Compartilhar > Acesso geral > Qualquer pessoa com o link > Leitor**.
+2. Importe o repositório na Vercel (framework **Other**) e clique em Deploy. Não precisa de nenhuma variável.
+
+Atenção: com a planilha pública, quem tiver o link da planilha vê nome, e-mail e telefone dos inscritos e compradores. A página do dashboard mostra só totais. O caminho seguro é o das seções abaixo (planilha privada com conta de serviço); se `GOOGLE_SERVICE_ACCOUNT_JSON` existir, a função usa esse caminho automaticamente.
+
 ## 1. Criar o acesso de leitura à planilha (uma vez, uns 5 minutos)
 
 1. Entre em https://console.cloud.google.com e crie um projeto (ou use um existente).

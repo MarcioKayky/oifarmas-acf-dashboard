@@ -1,4 +1,4 @@
-// Função da Vercel: lê a planilha do Google (conta de serviço, só leitura),
+// Função da Vercel: lê a planilha do Google (planilha pública ou conta de serviço),
 // calcula os totais e devolve JSON. O resultado fica em cache por 5 minutos.
 const crypto = require('crypto');
 const { compute } = require('../lib/compute');
@@ -36,21 +36,58 @@ async function accessToken(sa) {
   return j.access_token;
 }
 
+// Modo público: a planilha precisa estar com "qualquer pessoa com o link: leitor".
+// Não usa chave nenhuma. Só é usado quando GOOGLE_SERVICE_ACCOUNT_JSON não existe.
+function csv(texto) {
+  const linhas = [];
+  let linha = [];
+  let cel = '';
+  let aspas = false;
+  for (let i = 0; i < texto.length; i += 1) {
+    const c = texto[i];
+    if (aspas) {
+      if (c === '"' && texto[i + 1] === '"') { cel += '"'; i += 1; }
+      else if (c === '"') aspas = false;
+      else cel += c;
+    } else if (c === '"') aspas = true;
+    else if (c === ',') { linha.push(cel); cel = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && texto[i + 1] === '\n') i += 1;
+      linha.push(cel); linhas.push(linha); linha = []; cel = '';
+    } else cel += c;
+  }
+  if (cel !== '' || linha.length) { linha.push(cel); linhas.push(linha); }
+  return linhas;
+}
+
+async function lerPublico(aba) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(aba)}`;
+  const r = await fetch(url);
+  const t = await r.text();
+  if (!r.ok || t.trim().startsWith('<')) {
+    throw new Error(`Não consegui ler a aba "${aba}". A planilha está compartilhada como "qualquer pessoa com o link"?`);
+  }
+  return csv(t);
+}
+
+async function lerPrivado() {
+  const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const token = await accessToken(sa);
+  const qs = RANGES.map((r) => `ranges=${encodeURIComponent(r)}`).join('&');
+  const r = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?${qs}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  const j = await r.json();
+  if (!r.ok) throw new Error(`Google Sheets respondeu ${r.status}: ${(j.error && j.error.message) || ''}`);
+  return j.valueRanges.map((v) => v.values || []);
+}
+
 module.exports = async (req, res) => {
   try {
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-      throw new Error('Falta a variável de ambiente GOOGLE_SERVICE_ACCOUNT_JSON.');
-    }
-    const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-    const token = await accessToken(sa);
-    const qs = RANGES.map((r) => `ranges=${encodeURIComponent(r)}`).join('&');
-    const r = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchGet?${qs}`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    const j = await r.json();
-    if (!r.ok) throw new Error(`Google Sheets respondeu ${r.status}: ${(j.error && j.error.message) || ''}`);
-    const [leads, cat2, cat3] = j.valueRanges.map((v) => v.values || []);
+    const [leads, cat2, cat3] = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
+      ? await lerPrivado()
+      : await Promise.all(['Lista completa de cadastros', 'Categoria 2', 'Categoria 3'].map(lerPublico));
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).json(compute(leads, cat2, cat3, new Date()));
   } catch (e) {
